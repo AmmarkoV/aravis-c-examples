@@ -1,6 +1,6 @@
 project('aravis-c-examples', 'c', version: '0.0.1')
 
-aravis_dep = dependency('aravis-0.11')
+aravis_dep = dependency('aravis-0.10')
 
 examples = [
   '01-single-acquisition',
