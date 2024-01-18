@@ -1,6 +1,6 @@
 project('aravis-c-examples', 'c', version: '0.0.1')
 
-aravis_dep = dependency('aravis-0.8')
+aravis_dep = dependency('aravis-0.11')
 
 examples = [
   '01-single-acquisition',
@@ -9,7 +9,8 @@ examples = [
   '02-multiple-acquisition-signal',
   '03-camera-api',
   '04-camera-features',
-  '05-chunk-parser'
+  '05-chunk-parser',
+  '06-grabber'
 ]
 
 foreach e: examples
