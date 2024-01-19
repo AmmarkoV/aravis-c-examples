@@ -116,7 +116,7 @@ int
 main (int argc, char **argv)
 {
   char dir[512]={0};
-  snprintf(dir,512,"./");
+  snprintf(dir,512,".");
   unsigned int delay=0,maxFramesToGrab=10;
   unsigned int i=0;
   for (i=0; i<argc; i++)
@@ -207,7 +207,7 @@ main (int argc, char **argv)
                          printf("\r %u Frames Grabbed - @ %0.2f FPS   \r",i,(float) (endTime-startTime)/(i*1000));
 
 
-                         snprintf(filename,512,"colorFrame_0_%05u.pnm",i);
+                         snprintf(filename,512,"%s/colorFrame_0_%05u.pnm",dir,i);
                          WritePPM(filename,&dataAsImage); 
                         }
 
