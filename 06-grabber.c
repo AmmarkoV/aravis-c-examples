@@ -115,14 +115,23 @@ int WritePPM(const char * filename,struct Image * pic)
 int
 main (int argc, char **argv)
 {
+  char dir[512]={0};
+  snprintf(dir,512,"./");
   unsigned int delay=0,maxFramesToGrab=10;
   unsigned int i=0;
   for (i=0; i<argc; i++)
   {
-   if (strcmp(argv[i],"--delay")==0) {
-                                       delay=atoi(argv[i+1]);
-                                       fprintf(stderr,"Delay set to %u seconds \n",delay);
-                                      } else
+   if (strcmp(argv[i],"-o")==0)          {
+                                           snprintf(dir,512,"%s",argv[i+1]);
+                                           char makedircmd[512]={0};
+                                           snprintf(makedircmd,512,"mkdir -p %s",dir); 
+                                           int z = system(makedircmd);
+                                           fprintf(stderr,"Output Path set to %s \n",dir);
+                                         } else
+   if (strcmp(argv[i],"--delay")==0)     {
+                                           delay=atoi(argv[i+1]);
+                                           fprintf(stderr,"Delay set to %u seconds \n",delay);
+                                         } else
    if (strcmp(argv[i],"--maxFrames")==0) {
                                            maxFramesToGrab=atoi(argv[i+1]);
                                            fprintf(stderr,"Setting frame grab to %u \n",maxFramesToGrab);
