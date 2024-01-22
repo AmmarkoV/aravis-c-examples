@@ -119,6 +119,8 @@ main (int argc, char **argv)
   snprintf(dir,512,".");
   unsigned int delay=0,maxFramesToGrab=10;
   unsigned int i=0;
+  unsigned int ARV_VIEWER_N_BUFFERS=10;
+
   for (i=0; i<argc; i++)
   {
    if (strcmp(argv[i],"-o")==0)          {
@@ -167,9 +169,15 @@ main (int argc, char **argv)
 					arv_stream_push_buffer (stream, arv_buffer_new (payload, NULL));
 			}
 
+
+	        arv_stream_set_emit_signals (stream, TRUE);
+            arv_stream_create_buffers(stream, ARV_VIEWER_N_BUFFERS, NULL, NULL, NULL);
+
+        
 			if (error == NULL)
 				/* Start the acquisition */
-				arv_camera_start_acquisition (camera, &error);
+				arv_camera_set_acquisition_mode (camera, ARV_ACQUISITION_MODE_CONTINUOUS, NULL);
+                arv_camera_start_acquisition (camera, &error);
 
 			if (error == NULL) 
             {
