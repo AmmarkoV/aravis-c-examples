@@ -183,7 +183,7 @@ main (int argc, char **argv)
             {
                 const void *data;
                 struct Image dataAsImage={0};
-                char filename[1024]={0};
+                char filename[1025]={0};
                 unsigned int frameNumber = 0;
                 unsigned int brokenFrameNumber = 0;
 
@@ -216,7 +216,7 @@ main (int argc, char **argv)
                          unsigned long endTime = GetTickCountMicroseconds();
                          printf("\r %u Frames Grabbed (%u dropped) - @ %0.2f FPS  \r",frameNumber,brokenFrameNumber,(float) (endTime-startTime)/(i*1000));
 
-                         snprintf(filename,512,"%s/colorFrame_0_%05u.pnm",dir,i);
+                         snprintf(filename,1024,"%s/colorFrame_0_%05u.pnm",dir,frameNumber);
                          WritePPM(filename,&dataAsImage); 
                          frameNumber = frameNumber+1;
                         } else
