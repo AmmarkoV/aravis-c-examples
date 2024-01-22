@@ -173,16 +173,18 @@ main (int argc, char **argv)
 
 			if (error == NULL) 
             {
-               const void *data;
-               struct Image dataAsImage={0};
-               char filename[512]={0};
+                const void *data;
+                struct Image dataAsImage={0};
+                char filename[1024]={0};
+                unsigned int frameNumber = 0;
+                unsigned int brokenFrameNumber = 0;
+
+				ArvBuffer *buffer;
 
                 unsigned long startTime = GetTickCountMicroseconds();
 				/* Retrieve 10 buffers */
-				for (i = 0; i < maxFramesToGrab; i++) 
-                {
-					ArvBuffer *buffer;
-
+				while  (frameNumber<maxFramesToGrab) 
+                { 
 					buffer = arv_stream_pop_buffer (stream);
 					if (ARV_IS_BUFFER (buffer)) 
                     { 
@@ -204,12 +206,15 @@ main (int argc, char **argv)
 						 /* Display some informations about the retrieved buffer */
 						 //printf ("Acquired %d×%d buffer\n",dataAsImage.width,dataAsImage.height);
                          unsigned long endTime = GetTickCountMicroseconds();
-                         printf("\r %u Frames Grabbed - @ %0.2f FPS   \r",i,(float) (endTime-startTime)/(i*1000));
-
+                         printf("\r %u Frames Grabbed (%u dropped) - @ %0.2f FPS  \r",frameNumber,brokenFrameNumber,(float) (endTime-startTime)/(i*1000));
 
                          snprintf(filename,512,"%s/colorFrame_0_%05u.pnm",dir,i);
                          WritePPM(filename,&dataAsImage); 
-                        }
+                         frameNumber = frameNumber+1;
+                        } else
+                        {
+                          brokenFrameNumber = brokenFrameNumber + 1;
+                        }                     
 
 						/* Don't destroy the buffer, but put it back into the buffer pool */
 						arv_stream_push_buffer (stream, buffer);
