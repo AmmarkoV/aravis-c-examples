@@ -125,10 +125,12 @@ main (int argc, char **argv)
   {
    if (strcmp(argv[i],"-o")==0)          {
                                            snprintf(dir,512,"%s",argv[i+1]);
-                                           char makedircmd[512]={0};
-                                           snprintf(makedircmd,512,"mkdir -p %s",dir); 
+                                           char makedircmd[1025]={0};
+                                           snprintf(makedircmd,1024,"mkdir -p %s",dir); 
                                            int z = system(makedircmd);
-                                           fprintf(stderr,"Output Path set to %s \n",dir);
+                                           if (z==0)
+                                             { fprintf(stderr,"Output Path set to %s \n",dir); } else
+                                             { fprintf(stderr,"Failed setting output Path to %s \n",dir); }
                                          } else
    if (strcmp(argv[i],"--delay")==0)     {
                                            delay=atoi(argv[i+1]);
@@ -214,7 +216,7 @@ main (int argc, char **argv)
 						 /* Display some informations about the retrieved buffer */
 						 //printf ("Acquired %d×%d buffer\n",dataAsImage.width,dataAsImage.height);
                          unsigned long endTime = GetTickCountMicroseconds();
-                         printf("\r %u Frames Grabbed (%u dropped) - @ %0.2f FPS  \r",frameNumber,brokenFrameNumber,(float) (endTime-startTime)/(i*1000));
+                         printf("\r %u Frames Grabbed (%u dropped) - @ %0.2f FPS  \r",frameNumber,brokenFrameNumber,(float) (endTime-startTime)/(i*1000000));
 
                          snprintf(filename,1024,"%s/colorFrame_0_%05u.pnm",dir,frameNumber);
                          WritePPM(filename,&dataAsImage); 
