@@ -120,6 +120,7 @@ main (int argc, char **argv)
   unsigned int delay=0,maxFramesToGrab=10;
   unsigned int i=0;
   unsigned int ARV_VIEWER_N_BUFFERS=10;
+  unsigned int exposure=0; // 0 means no setting
 
   for (i=0; i<argc; i++)
   {
@@ -136,10 +137,17 @@ main (int argc, char **argv)
                                            delay=atoi(argv[i+1]);
                                            fprintf(stderr,"Delay set to %u seconds \n",delay);
                                          } else
+   if (strcmp(argv[i],"--exposure")==0)  {
+                                           exposure=atoi(argv[i+1]);
+                                           fprintf(stderr,"Exposure will be set to %u μsec \n",exposure);
+                                         } else
    if (strcmp(argv[i],"--maxFrames")==0) {
                                            maxFramesToGrab=atoi(argv[i+1]);
                                            fprintf(stderr,"Setting frame grab to %u \n",maxFramesToGrab);
-                                         } 
+                                         }  
+
+
+
   }
 
 	ArvCamera *camera;
@@ -180,6 +188,9 @@ main (int argc, char **argv)
 				/* Start the acquisition */
 				arv_camera_set_acquisition_mode (camera, ARV_ACQUISITION_MODE_CONTINUOUS, NULL);
                 arv_camera_start_acquisition (camera, &error);
+
+                if (exposure!=0)
+                   { arv_camera_set_exposure_time(camera, exposure, NULL); }
 
 			if (error == NULL) 
             {
@@ -234,6 +245,7 @@ main (int argc, char **argv)
 
 			if (error == NULL)
 				/* Stop the acquisition */
+                arv_stream_set_emit_signals (stream, FALSE);
 				arv_camera_stop_acquisition (camera, &error);
 
 			/* Destroy the stream object */
