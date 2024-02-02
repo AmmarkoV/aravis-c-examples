@@ -121,6 +121,9 @@ main (int argc, char **argv)
   unsigned int i=0;
   unsigned int ARV_VIEWER_N_BUFFERS=10;
   unsigned int exposure=0; // 0 means no setting
+  double       gain = 0.0;
+  double       blackLevel = 0.0;
+  double       frameRate = 0.0;
 
   for (i=0; i<argc; i++)
   {
@@ -130,8 +133,8 @@ main (int argc, char **argv)
                                            snprintf(makedircmd,1024,"mkdir -p %s",dir); 
                                            int z = system(makedircmd);
                                            if (z==0)
-                                             { fprintf(stderr,"Output Path set to %s \n",dir); } else
-                                             { fprintf(stderr,"Failed setting output Path to %s \n",dir); }
+                                             { fprintf(stderr,"Output Path set to \"%s\" \n",dir); } else
+                                             { fprintf(stderr,"Failed setting output Path to \"%s\" \n",dir); }
                                          } else
    if (strcmp(argv[i],"--delay")==0)     {
                                            delay=atoi(argv[i+1]);
@@ -141,6 +144,18 @@ main (int argc, char **argv)
                                            exposure=atoi(argv[i+1]);
                                            fprintf(stderr,"Exposure will be set to %u μsec \n",exposure);
                                          } else
+   if (strcmp(argv[i],"--gain")==0)      {
+                                           gain=atof(argv[i+1]);
+                                           fprintf(stderr,"Gain will be set to %f \n",gain);
+                                         } else 
+   if (strcmp(argv[i],"--fps")==0)      {
+                                           frameRate=atof(argv[i+1]);
+                                           fprintf(stderr,"Framerate will be set to %f Hz \n",frameRate);
+                                         } else 
+   if (strcmp(argv[i],"--blacklevel")==0){
+                                           blackLevel=atof(argv[i+1]);
+                                           fprintf(stderr,"Black Level will be set to %f μsec \n",blackLevel);
+                                         } else 
    if (strcmp(argv[i],"--maxFrames")==0) {
                                            maxFramesToGrab=atoi(argv[i+1]);
                                            fprintf(stderr,"Setting frame grab to %u \n",maxFramesToGrab);
@@ -191,6 +206,13 @@ main (int argc, char **argv)
 
                 if (exposure!=0)
                    { arv_camera_set_exposure_time(camera, exposure, NULL); }
+                if (gain!=0.0)
+	               { arv_camera_set_gain (camera, gain, NULL); }
+                if (blackLevel!=0.0)
+	               { arv_camera_set_black_level(camera, blackLevel, NULL); }
+                if (frameRate!=0.0)
+                   { arv_camera_set_frame_rate (camera, frameRate, NULL); }
+
 
 			if (error == NULL) 
             {
@@ -227,7 +249,10 @@ main (int argc, char **argv)
 						 /* Display some informations about the retrieved buffer */
 						 //printf ("Acquired %d×%d buffer\n",dataAsImage.width,dataAsImage.height);
                          unsigned long endTime = GetTickCountMicroseconds();
-                         printf("\r %u Frames Grabbed (%u dropped) - @ %0.2f FPS  \r",frameNumber,brokenFrameNumber,(float) (endTime-startTime)/(i*1000000));
+
+
+                      	 float frameRate = arv_camera_get_frame_rate (camera, NULL);
+                         printf("\r %u Frames Grabbed (%u dropped) - @  %0.2f FPS (set to %0.2f)  \r",frameNumber,brokenFrameNumber,(float) frameNumber / ((endTime-startTime)/1000000), frameRate );
 
                          snprintf(filename,1024,"%s/colorFrame_0_%05u.pnm",dir,frameNumber);
                          WritePPM(filename,&dataAsImage); 
