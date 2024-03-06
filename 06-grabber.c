@@ -24,6 +24,15 @@ struct Image
 };
 
 
+struct Settings
+{
+  unsigned int delay,maxFramesToGrab;
+  unsigned int exposure; // 0 means no setting
+  double       gain;
+  double       blackLevel;
+  double       frameRate;
+  char * tickCommand;
+};
 
 #include <sys/time.h>
 #include <unistd.h>
@@ -46,6 +55,23 @@ unsigned long GetTickCountMicroseconds()
    return ( ts.tv_sec*1000000 + ts.tv_nsec/1000 ) - tickBase;
 }
 
+int writeSettings(const char * filename,struct Settings * settings)
+{
+  FILE * fp = fopen(filename,"w");
+  if (fp!=0)
+    {
+       fprintf(fp,"{\ndelay=%u\n",settings->delay);
+       fprintf(fp,"maxFramesToGrab=%u,\n",settings->maxFramesToGrab);
+       fprintf(fp,"exposure=%u,\n",settings->exposure);
+       fprintf(fp,"blackLevel=%f,\n",settings->blackLevel);
+       fprintf(fp,"gain=%f,\n",settings->gain); 
+       fprintf(fp,"frameRate=%f,\n",settings->frameRate); 
+       fprintf(fp,"tickCommand=\"%s\",\n}\n",settings->tickCommand); 
+       fclose(fp);
+       return 1;
+    }
+  return 0;
+}
 
 
 unsigned int simplePowPPM(unsigned int base,unsigned int exp)
@@ -59,6 +85,7 @@ unsigned int simplePowPPM(unsigned int base,unsigned int exp)
     }
     return retres;
 }
+
 
 int WritePPM(const char * filename,struct Image * pic)
 {
@@ -112,18 +139,15 @@ int WritePPM(const char * filename,struct Image * pic)
 /*
  * Connect to the first available camera, then acquire 10 buffers.
  */
-int
-main (int argc, char **argv)
+int main (int argc, char **argv)
 {
   char dir[512]={0};
   snprintf(dir,512,".");
-  unsigned int delay=0,maxFramesToGrab=10;
+ 
   unsigned int i=0;
   unsigned int ARV_VIEWER_N_BUFFERS=10;
-  unsigned int exposure=0; // 0 means no setting
-  double       gain = 0.0;
-  double       blackLevel = 0.0;
-  double       frameRate = 0.0;
+  struct Settings settings={0};
+  settings.maxFramesToGrab = 10;
 
   for (i=0; i<argc; i++)
   {
@@ -137,28 +161,32 @@ main (int argc, char **argv)
                                              { fprintf(stderr,"Failed setting output Path to \"%s\" \n",dir); }
                                          } else
    if (strcmp(argv[i],"--delay")==0)     {
-                                           delay=atoi(argv[i+1]);
-                                           fprintf(stderr,"Delay set to %u seconds \n",delay);
+                                           settings.delay=atoi(argv[i+1]);
+                                           fprintf(stderr,"Delay set to %u seconds \n",settings.delay);
+                                         } else
+   if (strcmp(argv[i],"--tick")==0)     {
+                                           settings.tickCommand=argv[i+1];
+                                           fprintf(stderr,"Setting tick command to %s \n",settings.tickCommand);
                                          } else
    if (strcmp(argv[i],"--exposure")==0)  {
-                                           exposure=atoi(argv[i+1]);
-                                           fprintf(stderr,"Exposure will be set to %u μsec \n",exposure);
+                                           settings.exposure=atoi(argv[i+1]);
+                                           fprintf(stderr,"Exposure will be set to %u μsec \n",settings.exposure);
                                          } else
    if (strcmp(argv[i],"--gain")==0)      {
-                                           gain=atof(argv[i+1]);
-                                           fprintf(stderr,"Gain will be set to %f \n",gain);
+                                           settings.gain=atof(argv[i+1]);
+                                           fprintf(stderr,"Gain will be set to %f \n",settings.gain);
                                          } else 
    if (strcmp(argv[i],"--fps")==0)      {
-                                           frameRate=atof(argv[i+1]);
-                                           fprintf(stderr,"Framerate will be set to %f Hz \n",frameRate);
+                                           settings.frameRate=atof(argv[i+1]);
+                                           fprintf(stderr,"Framerate will be set to %f Hz \n",settings.frameRate);
                                          } else 
    if (strcmp(argv[i],"--blacklevel")==0){
-                                           blackLevel=atof(argv[i+1]);
-                                           fprintf(stderr,"Black Level will be set to %f μsec \n",blackLevel);
+                                           settings.blackLevel=atof(argv[i+1]);
+                                           fprintf(stderr,"Black Level will be set to %f μsec \n",settings.blackLevel);
                                          } else 
    if (strcmp(argv[i],"--maxFrames")==0) {
-                                           maxFramesToGrab=atoi(argv[i+1]);
-                                           fprintf(stderr,"Setting frame grab to %u \n",maxFramesToGrab);
+                                           settings.maxFramesToGrab=atoi(argv[i+1]);
+                                           fprintf(stderr,"Setting frame grab to %u \n",settings.maxFramesToGrab);
                                          }  
 
 
@@ -204,14 +232,14 @@ main (int argc, char **argv)
 				arv_camera_set_acquisition_mode (camera, ARV_ACQUISITION_MODE_CONTINUOUS, NULL);
                 arv_camera_start_acquisition (camera, &error);
 
-                if (exposure!=0)
-                   { arv_camera_set_exposure_time(camera, exposure, NULL); }
-                if (gain!=0.0)
-	               { arv_camera_set_gain (camera, gain, NULL); }
-                if (blackLevel!=0.0)
-	               { arv_camera_set_black_level(camera, blackLevel, NULL); }
-                if (frameRate!=0.0)
-                   { arv_camera_set_frame_rate (camera, frameRate, NULL); }
+                if (settings.exposure!=0)
+                   { arv_camera_set_exposure_time(camera, settings.exposure, NULL); }
+                if (settings.gain!=0.0)
+	               { arv_camera_set_gain (camera, settings.gain, NULL); }
+                if (settings.blackLevel!=0.0)
+	               { arv_camera_set_black_level(camera, settings.blackLevel, NULL); }
+                if (settings.frameRate!=0.0)
+                   { arv_camera_set_frame_rate (camera, settings.frameRate, NULL); }
 
 
 			if (error == NULL) 
@@ -224,9 +252,13 @@ main (int argc, char **argv)
 
 				ArvBuffer *buffer;
 
+                snprintf(filename,1024,"%s/info.json",dir);
+                writeSettings(filename,&settings);
+
                 unsigned long startTime = GetTickCountMicroseconds();
 				/* Retrieve 10 buffers */
-				while  (frameNumber<maxFramesToGrab) 
+
+				while  (frameNumber<settings.maxFramesToGrab) 
                 { 
 					buffer = arv_stream_pop_buffer (stream);
 					if (ARV_IS_BUFFER (buffer)) 
@@ -257,6 +289,10 @@ main (int argc, char **argv)
                          snprintf(filename,1024,"%s/colorFrame_0_%05u.pnm",dir,frameNumber);
                          WritePPM(filename,&dataAsImage); 
                          frameNumber = frameNumber+1;
+
+                         if (settings.tickCommand!=0)
+                             { system(settings.tickCommand); }
+ 
                         } else
                         {
                           brokenFrameNumber = brokenFrameNumber + 1;
