@@ -147,7 +147,9 @@ int main (int argc, char **argv)
   unsigned int i=0;
   unsigned int ARV_VIEWER_N_BUFFERS=10;
   struct Settings settings={0};
+  struct Image dataAsImage={0};
   settings.maxFramesToGrab = 10;
+  char refreshDimsOnEachFrame = 1;
 
   for (i=0; i<argc; i++)
   {
@@ -159,6 +161,9 @@ int main (int argc, char **argv)
                                            if (z==0)
                                              { fprintf(stderr,"Output Path set to \"%s\" \n",dir); } else
                                              { fprintf(stderr,"Failed setting output Path to \"%s\" \n",dir); }
+                                         } else
+   if (strcmp(argv[i],"--norefresh")==0) {
+                                           refreshDimsOnEachFrame=0;
                                          } else
    if (strcmp(argv[i],"--delay")==0)     {
                                            settings.delay=atoi(argv[i+1]);
@@ -246,10 +251,21 @@ int main (int argc, char **argv)
                    { arv_camera_set_frame_rate (camera, settings.frameRate, NULL); }
 
 
+
+
 			if (error == NULL) 
             {
+                if (!refreshDimsOnEachFrame)
+                {
+                 int minvalue=0,maxvalue=0;
+                 arv_camera_get_width_bounds(camera,&minvalue,&maxvalue,NULL);
+                 dataAsImage.width  = (unsigned int) maxvalue;	
+                 arv_camera_get_height_bounds(camera,&minvalue,&maxvalue,NULL);
+                 dataAsImage.height  = (unsigned int) maxvalue;
+                 arv_camera_set_region(camera,0,0,dataAsImage.width,dataAsImage.height,NULL); //Use full sensor area
+                }
+
                 const void *data;
-                struct Image dataAsImage={0};
                 char filename[1025]={0};
                 unsigned int frameNumber = 0;
                 unsigned int brokenFrameNumber = 0;
@@ -265,10 +281,13 @@ int main (int argc, char **argv)
 				while  (frameNumber<settings.maxFramesToGrab) 
                 { 
 					buffer = arv_stream_pop_buffer (stream);
-					if (ARV_IS_BUFFER (buffer)) 
+					if (ARV_IS_BUFFER(buffer)) 
                     { 
-                        dataAsImage.width        = arv_buffer_get_image_width (buffer);
-                        dataAsImage.height       = arv_buffer_get_image_height (buffer); 
+                        if (refreshDimsOnEachFrame)
+                        {
+                         dataAsImage.width        = arv_buffer_get_image_width (buffer);
+                         dataAsImage.height       = arv_buffer_get_image_height (buffer);
+                        } 
 
                         if ((dataAsImage.width!=0) && (dataAsImage.height!=0))
                         {
