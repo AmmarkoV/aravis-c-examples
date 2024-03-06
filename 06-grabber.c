@@ -149,6 +149,7 @@ int main (int argc, char **argv)
   struct Settings settings={0};
   struct Image dataAsImage={0};
   settings.maxFramesToGrab = 10;
+  char forceDims = 0;
   char refreshDimsOnEachFrame = 1;
 
   for (i=0; i<argc; i++)
@@ -164,6 +165,12 @@ int main (int argc, char **argv)
                                          } else
    if (strcmp(argv[i],"--norefresh")==0) {
                                            refreshDimsOnEachFrame=0;
+                                         } else
+   if (strcmp(argv[i],"--size")==0)      {
+                                           forceDims=1;
+                                           dataAsImage.width=atoi(argv[i+1]);
+                                           dataAsImage.height=atoi(argv[i+2]);
+                                           fprintf(stderr,"Camera size set to %u x %u pixels \n",dataAsImage.width,dataAsImage.height);
                                          } else
    if (strcmp(argv[i],"--delay")==0)     {
                                            settings.delay=atoi(argv[i+1]);
@@ -255,13 +262,17 @@ int main (int argc, char **argv)
 
 			if (error == NULL) 
             {
-                if (!refreshDimsOnEachFrame)
-                {
-                 int minvalue=0,maxvalue=0;
-                 arv_camera_get_width_bounds(camera,&minvalue,&maxvalue,NULL);
-                 dataAsImage.width  = (unsigned int) maxvalue;	
-                 arv_camera_get_height_bounds(camera,&minvalue,&maxvalue,NULL);
-                 dataAsImage.height  = (unsigned int) maxvalue;
+               if ( (!refreshDimsOnEachFrame)&& (!forceDims) ) 
+                 { //Poll dims so that we know them in advance if we dont want to get them from each buffer, and we dont want to force a specific dimension
+                  int minvalue=0,maxvalue=0;
+                  arv_camera_get_width_bounds(camera,&minvalue,&maxvalue,NULL);
+                  dataAsImage.width  = (unsigned int) maxvalue;	
+                  arv_camera_get_height_bounds(camera,&minvalue,&maxvalue,NULL);
+                  dataAsImage.height  = (unsigned int) maxvalue;
+                 }
+
+               if ( (!refreshDimsOnEachFrame) || (forceDims) ) 
+                { //Attempt to setup region if there is no autorefresh of dimensions, or we want to force a specific dimension
                  arv_camera_set_region(camera,0,0,dataAsImage.width,dataAsImage.height,NULL); //Use full sensor area
                 }
 
