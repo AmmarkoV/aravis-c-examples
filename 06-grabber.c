@@ -357,7 +357,7 @@ int main (int argc, char **argv)
 		return EXIT_FAILURE;
 	}
  
-    print("\n\nDone\n");  
+    printf("\n\nDone\n");  
 	return EXIT_SUCCESS;
 }
 
