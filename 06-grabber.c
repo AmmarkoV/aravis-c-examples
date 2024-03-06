@@ -350,13 +350,14 @@ int main (int argc, char **argv)
 		/* Destroy the camera instance */
 		g_clear_object (&camera);
 	}
-
+ 
 	if (error != NULL) {
 		/* En error happened, display the correspdonding message */
 		printf ("Error: %s\n", error->message);
 		return EXIT_FAILURE;
 	}
-
+ 
+    print("\n\nDone\n");  
 	return EXIT_SUCCESS;
 }
 
