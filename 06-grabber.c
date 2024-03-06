@@ -60,13 +60,13 @@ int writeSettings(const char * filename,struct Settings * settings)
   FILE * fp = fopen(filename,"w");
   if (fp!=0)
     {
-       fprintf(fp,"{\ndelay=%u\n",settings->delay);
-       fprintf(fp,"maxFramesToGrab=%u,\n",settings->maxFramesToGrab);
-       fprintf(fp,"exposure=%u,\n",settings->exposure);
-       fprintf(fp,"blackLevel=%f,\n",settings->blackLevel);
-       fprintf(fp,"gain=%f,\n",settings->gain); 
-       fprintf(fp,"frameRate=%f,\n",settings->frameRate); 
-       fprintf(fp,"tickCommand=\"%s\",\n}\n",settings->tickCommand); 
+       fprintf(fp,"{\n\"delay\": %u\n",settings->delay);
+       fprintf(fp,"\"maxFramesToGrab\": %u,\n",settings->maxFramesToGrab);
+       fprintf(fp,"\"exposure\": %u,\n",settings->exposure);
+       fprintf(fp,"\"blackLevel\": %f,\n",settings->blackLevel);
+       fprintf(fp,"\"gain\": %f,\n",settings->gain); 
+       fprintf(fp,"\"frameRate\": %f,\n",settings->frameRate); 
+       fprintf(fp,"\"tickCommand\": \"%s\",\n}\n",settings->tickCommand); 
        fclose(fp);
        return 1;
     }
