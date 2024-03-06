@@ -168,6 +168,10 @@ int main (int argc, char **argv)
                                            settings.tickCommand=argv[i+1];
                                            fprintf(stderr,"Setting tick command to %s \n",settings.tickCommand);
                                          } else
+   if (strcmp(argv[i],"--buffers")==0)   {
+                                           ARV_VIEWER_N_BUFFERS=atoi(argv[i+1]);
+                                           fprintf(stderr,"ARV_VIEWER_N_BUFFERS = %u \n",ARV_VIEWER_N_BUFFERS);
+                                         } else
    if (strcmp(argv[i],"--exposure")==0)  {
                                            settings.exposure=atoi(argv[i+1]);
                                            fprintf(stderr,"Exposure will be set to %u μsec \n",settings.exposure);
