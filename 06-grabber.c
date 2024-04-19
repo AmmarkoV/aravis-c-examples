@@ -6,11 +6,18 @@
 /* Standard headers */
 #include <stdlib.h>
 #include <stdio.h>
+#include <signal.h>
 
 // To compile :
 //  meson compile -C build
 // To Run : 
 //  build/06-grabber
+
+volatile sig_atomic_t termination_requested = 0;
+
+void sigterm_handler(int signum) {
+    termination_requested = 1;
+}
 
 struct Image
 {
@@ -141,6 +148,14 @@ int WritePPM(const char * filename,struct Image * pic)
  */
 int main (int argc, char **argv)
 {
+// Set up SIGTERM signal handler
+    struct sigaction action;
+    action.sa_handler = sigterm_handler;
+    sigemptyset(&action.sa_mask);
+    action.sa_flags = 0;
+    sigaction(SIGTERM, &action, NULL);
+
+
   char dir[512]={0};
   snprintf(dir,512,".");
  
@@ -287,9 +302,8 @@ int main (int argc, char **argv)
                 writeSettings(filename,&settings);
 
                 unsigned long startTime = GetTickCountMicroseconds();
-				/* Retrieve 10 buffers */
 
-				while  (frameNumber<settings.maxFramesToGrab) 
+				while  (!termination_requested && frameNumber<settings.maxFramesToGrab) 
                 { 
 					buffer = arv_stream_pop_buffer (stream);
 					if (ARV_IS_BUFFER(buffer)) 
