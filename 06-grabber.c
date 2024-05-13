@@ -241,7 +241,8 @@ int main (int argc, char **argv)
 			/* Create the stream object without callback */
 			stream = arv_camera_create_stream (camera, NULL, NULL, &error);
 
-		if (ARV_IS_STREAM (stream)) {
+		if (ARV_IS_STREAM (stream)) 
+		       {
 			int i;
 			size_t payload;
 
@@ -303,10 +304,14 @@ int main (int argc, char **argv)
 
                 unsigned long startTime = GetTickCountMicroseconds();
 
-				while  (!termination_requested && frameNumber<settings.maxFramesToGrab) 
+                unsigned long startGrab, endGrab;
+                unsigned long microsecondsGrab;
+    
+		while  (!termination_requested && frameNumber<settings.maxFramesToGrab) 
                 { 
-					buffer = arv_stream_pop_buffer (stream);
-					if (ARV_IS_BUFFER(buffer)) 
+                    startGrab = GetTickCountMicroseconds();
+		    buffer = arv_stream_pop_buffer (stream);
+		    if (ARV_IS_BUFFER(buffer)) 
                     { 
                         if (refreshDimsOnEachFrame)
                         {
@@ -349,8 +354,21 @@ int main (int argc, char **argv)
 						/* Don't destroy the buffer, but put it back into the buffer pool */
 						arv_stream_push_buffer (stream, buffer);
 					}
-				}
-			}
+			
+                        endGrab = GetTickCountMicroseconds();
+                        
+                        if (settings.frameRate!=0.0)
+                        {//Enforce framrates to prevent buffer underrun
+                         microsecondsGrab = endGrab - startGrab; 
+                         // Calculate the time to usleep to achieve target framerate
+                         unsigned long targetMicroseconds = 1000000 / settings.frameRate;
+                         if (microsecondsGrab < targetMicroseconds) 
+                            {
+                             usleep(targetMicroseconds - microsecondsGrab);
+                            }
+                         }//We have a framerate set
+			} //While loop
+		} // No initialization error
 
 			if (error == NULL)
 				/* Stop the acquisition */
