@@ -249,7 +249,7 @@ int main (int argc, char **argv)
 			payload = arv_camera_get_payload (camera, &error);
 			if (error == NULL) {
 				/* Insert some buffers in the stream buffer pool */
-				for (i = 0; i < 10; i++)
+				for (i = 0; i < ARV_VIEWER_N_BUFFERS; i++)
 					arv_stream_push_buffer (stream, arv_buffer_new (payload, NULL));
 			}
 
