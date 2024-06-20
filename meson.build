@@ -10,9 +10,21 @@ examples = [
   '03-camera-api',
   '04-camera-features',
   '05-chunk-parser',
-  '06-grabber'
+  '06-grabber',
+  '07-streamer'
 ]
+ 
+lib_dir = meson.current_source_dir()
+shared_lib = meson.get_compiler('c').find_library('SharedMemoryVideoBuffers', dirs : lib_dir, required: true)
 
 foreach e: examples
-  exe = executable (e, e + '.c', dependencies: aravis_dep)
+  if e == '07-streamer'
+    if shared_lib.found()
+      exe = executable(e, e + '.c', dependencies: [aravis_dep, shared_lib])
+    else
+      message('Skipping 07-streamer: SharedMemoryVideoBuffers library not found.')
+    endif
+  else
+    exe = executable(e, e + '.c', dependencies: aravis_dep)
+  endif
 endforeach
