@@ -184,6 +184,7 @@ int main (int argc, char **argv)
     unsigned int ARV_VIEWER_N_BUFFERS=10;
     struct Settings settings= {0};
     struct Image dataAsImage= {0};
+    dataAsImage.channels     = 1;
     settings.maxFramesToGrab = 10;
     char forceDims = 0;
     char refreshDimsOnEachFrame = 1;
@@ -207,7 +208,7 @@ int main (int argc, char **argv)
             refreshDimsOnEachFrame=0;
         } else if (strcmp(argv[i],"--size")==0)      {
             forceDims=1;
-            dataAsImage.width=atoi(argv[i+1]);
+            dataAsImage.width =atoi(argv[i+1]);
             dataAsImage.height=atoi(argv[i+2]);
             fprintf(stderr,"Camera size set to %u x %u pixels \n",dataAsImage.width,dataAsImage.height);
         } else if (strcmp(argv[i],"--delay")==0)     {
@@ -237,20 +238,6 @@ int main (int argc, char **argv)
         }
     }
 
-
-    const char *shm_name    = "video_frames.shm";
-    const char *stream_name = "stream1";
-    // Client process
-    if (createSharedMemoryContextDescriptor(shm_name) == -1)
-    {
-        return EXIT_FAILURE;
-    }
-
-    struct SharedMemoryContext *context = connectToSharedMemoryContextDescriptor(shm_name);
-    if (!context)
-    {
-        return EXIT_FAILURE;
-    }
 
 
 
@@ -356,7 +343,23 @@ int main (int argc, char **argv)
    //----------------------------------------------------------------------------------------
    //----------------------------------------------------------------------------------------
    //----------------------------------------------------------------------------------------
+    const char *shm_name    = "video_frames.shm";
+    const char *stream_name = "stream1";
+    // Client process
+    if (createSharedMemoryContextDescriptor(shm_name) == -1)
+    {
+        return EXIT_FAILURE;
+    }
+
+    struct SharedMemoryContext *context = connectToSharedMemoryContextDescriptor(shm_name);
+    if (!context)
+    {
+        return EXIT_FAILURE;
+    }
+
+
     createVideoFrameMetaData(context,stream_name,dataAsImage.width,dataAsImage.height,dataAsImage.channels);
+    fprintf(stderr,"Creating video stream %s, %ux%u:%u",stream_name,dataAsImage.width,dataAsImage.height,dataAsImage.channels);
 
     struct VideoFrame *frame = getVideoBufferPointer(context,stream_name);
     if (!frame)
@@ -375,7 +378,7 @@ int main (int argc, char **argv)
 
 
 
-                while  (!termination_requested && frameNumber<settings.maxFramesToGrab)
+                while  (!termination_requested)// && frameNumber<settings.maxFramesToGrab)
                 {
                     startGrab = GetTickCountMicroseconds();
                     buffer = arv_stream_pop_buffer (stream);
@@ -409,8 +412,18 @@ int main (int argc, char **argv)
                             printf("\r %u Frames Grabbed (%u dropped) - @ %0.2f FPS (set %0.2f) ",frameNumber,brokenFrameNumber,(float) frameNumber / ((endTime-startTime)/1000000), frameRate );
                             printf("Ok %lu/Fail %lu/Under %lu    \r",n_completed_buffers,n_failures,n_underruns);
 
-                            snprintf(filename,1024,"%s/colorFrame_0_%05u.pnm",dir,frameNumber);
-                            WritePPM(filename,&dataAsImage);
+                            //snprintf(filename,1024,"%s/colorFrame_0_%05u.pnm",dir,frameNumber);
+                            //WritePPM(filename,&dataAsImage);
+
+
+    if (startWritingToVideoBufferPointer(frame))
+    { 
+        copy_to_shared_memory((void *)frame, dataAsImage.pixels ,dataAsImage.image_size);
+        stopWritingToVideoBufferPointer(frame); 
+    }
+
+
+
                             frameNumber = frameNumber+1;
 
                             if (settings.tickCommand!=0)
