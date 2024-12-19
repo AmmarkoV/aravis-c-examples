@@ -69,7 +69,7 @@ int writeSettings(const char * filename,struct Settings * settings)
     FILE * fp = fopen(filename,"w");
     if (fp!=0)
     {
-        fprintf(fp,"{\n\"delay\": %u\n",settings->delay);
+        fprintf(fp,"{\n\"delay\": %u,\n",settings->delay);
         fprintf(fp,"\"maxFramesToGrab\": %u,\n",settings->maxFramesToGrab);
         fprintf(fp,"\"exposure\": %u,\n",settings->exposure);
         fprintf(fp,"\"blackLevel\": %f,\n",settings->blackLevel);
