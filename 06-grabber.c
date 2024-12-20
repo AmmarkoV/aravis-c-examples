@@ -75,7 +75,7 @@ int writeSettings(const char * filename,struct Settings * settings)
         fprintf(fp,"\"blackLevel\": %f,\n",settings->blackLevel);
         fprintf(fp,"\"gain\": %f,\n",settings->gain);
         fprintf(fp,"\"frameRate\": %f,\n",settings->frameRate);
-        fprintf(fp,"\"tickCommand\": \"%s\",\n}\n",settings->tickCommand);
+        fprintf(fp,"\"tickCommand\": \"%s\"\n}\n",settings->tickCommand);
         fclose(fp);
         return 1;
     }
