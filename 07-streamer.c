@@ -168,7 +168,7 @@ int WritePPM(const char * filename,struct Image * pic)
  */
 int main (int argc, char **argv)
 {
-// Set up SIGTERM signal handler
+    // Set up SIGTERM signal handler
     struct sigaction action;
     action.sa_handler = sigterm_handler;
     sigemptyset(&action.sa_mask);
@@ -191,7 +191,10 @@ int main (int argc, char **argv)
 
     for (i=0; i<argc; i++)
     {
-        if (strcmp(argv[i],"-o")==0)          {
+        if (strcmp(argv[i],"-o")==0)
+        {
+            if (argc>i+1)
+            {
             snprintf(dir,512,"%s",argv[i+1]);
             char makedircmd[1025]= {0};
             snprintf(makedircmd,1024,"mkdir -p %s",dir);
@@ -203,6 +206,11 @@ int main (int argc, char **argv)
             else
             {
                 fprintf(stderr,"Failed setting output Path to \"%s\" \n",dir);
+            }
+
+            } else
+            {
+                fprintf(stderr,"Failed setting output Path, not enough arguments! \n");
             }
         } else if (strcmp(argv[i],"--norefresh")==0) {
             refreshDimsOnEachFrame=0;
@@ -241,16 +249,30 @@ int main (int argc, char **argv)
 
 
 
-    ArvCamera *camera;
+    ArvCamera *camera = NULL;
     GError *error = NULL;
 
     /* Connect to the first available camera */
+    printf ("Trying to connect to camera \n");
     camera = arv_camera_new (NULL, &error);
+    if ( (camera == NULL) && (error != NULL) )
+       {
+          fprintf (stderr,"No camera found, terminating streamer\n");
+          exit(1);
+       }
+    printf ("Found a device ..\n");
 
-    if (ARV_IS_CAMERA (camera)) {
+
+
+    if (ARV_IS_CAMERA(camera))
+    {
         ArvStream *stream = NULL;
 
-        printf ("Found camera '%s'\n", arv_camera_get_model_name (camera, NULL));
+        const char * cameraModelName = arv_camera_get_model_name (camera, NULL);
+        if (cameraModelName!=NULL)
+          { printf ("Found camera '%s'\n", cameraModelName); } else
+          { fprintf (stderr,"Could not find camera name\n"); }
+
 
         arv_camera_set_acquisition_mode (camera, ARV_ACQUISITION_MODE_CONTINUOUS, &error);
 
@@ -417,9 +439,9 @@ int main (int argc, char **argv)
 
 
     if (startWritingToVideoBufferPointer(frame))
-    { 
+    {
         copy_to_shared_memory((void *)frame, dataAsImage.pixels ,dataAsImage.image_size);
-        stopWritingToVideoBufferPointer(frame); 
+        stopWritingToVideoBufferPointer(frame);
     }
 
 
