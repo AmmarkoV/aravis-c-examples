@@ -180,7 +180,10 @@ int main (int argc, char **argv)
 
     for (i=0; i<argc; i++)
     {
-        if (strcmp(argv[i],"-o")==0)          {
+        if (strcmp(argv[i],"-o")==0)          
+        {
+            if (argc>i+1)
+            {
             snprintf(dir,512,"%s",argv[i+1]);
             char makedircmd[1025]= {0};
             snprintf(makedircmd,1024,"mkdir -p %s",dir);
@@ -192,6 +195,11 @@ int main (int argc, char **argv)
             else
             {
                 fprintf(stderr,"Failed setting output Path to \"%s\" \n",dir);
+            }
+
+            } else
+            {
+                fprintf(stderr,"Failed setting output Path, not enough arguments! \n");
             }
         } else if (strcmp(argv[i],"--norefresh")==0) {
             refreshDimsOnEachFrame=0;
@@ -230,11 +238,22 @@ int main (int argc, char **argv)
 
     }
 
-    ArvCamera *camera;
+
+    /* Mandatory glib type system initialization */
+    //arv_g_type_init ();
+
+    ArvCamera *camera = NULL;
     GError *error = NULL;
 
     /* Connect to the first available camera */
+    printf ("Trying to connect to camera \n");
     camera = arv_camera_new (NULL, &error);
+    if ( (camera == NULL) && (error != NULL) )
+       {
+          fprintf (stderr,"No camera found, terminating streamer\n");
+          exit(1);
+       }
+    printf ("Found a device ..\n");
 
     if (ARV_IS_CAMERA (camera)) {
         ArvStream *stream = NULL;
