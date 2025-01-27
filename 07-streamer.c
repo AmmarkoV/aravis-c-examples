@@ -247,6 +247,8 @@ int main (int argc, char **argv)
     }
 
 
+    /* Mandatory glib type system initialization */
+    //arv_g_type_init ();
 
 
     ArvCamera *camera = NULL;
@@ -278,7 +280,7 @@ int main (int argc, char **argv)
 
         if (error == NULL)
             /* Create the stream object without callback */
-            stream = arv_camera_create_stream (camera, NULL, NULL, &error);
+            stream = arv_camera_create_stream (camera, NULL, NULL, NULL, &error);
 
         if (ARV_IS_STREAM (stream))
         {

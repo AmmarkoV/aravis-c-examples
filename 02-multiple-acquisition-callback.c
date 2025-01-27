@@ -91,7 +91,7 @@ main (int argc, char **argv)
 
 		if (error == NULL)
 			/* Create the stream object with callback */
-			callback_data.stream = arv_camera_create_stream (camera, stream_callback, &callback_data, &error);
+			callback_data.stream = arv_camera_create_stream (camera, stream_callback, &callback_data, NULL, &error);
 
 		if (ARV_IS_STREAM (callback_data.stream)) {
 			int i;
